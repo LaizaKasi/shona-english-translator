@@ -1,11 +1,17 @@
-# app.py
-
 import streamlit as st
 import os
 from google.cloud import translate_v2 as translate
+import json
 
-# Set up Google Cloud credentials
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'abc.json'
+# Load Google Cloud credentials from Streamlit secrets
+gcp_credentials = dict(st.secrets["gcp"])  # Convert AttrDict to a regular dictionary
+gcp_credentials_path = "gcp_credentials.json"
+
+# Write credentials to a temporary file
+with open(gcp_credentials_path, "w") as f:
+    json.dump(gcp_credentials, f)
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = gcp_credentials_path
 
 # Define translation function
 def translate_shona_to_english(text):
@@ -19,13 +25,8 @@ def translate_shona_to_english(text):
 # Streamlit UI
 st.title('Shona to English Translator')
 
-# Input field for Shona text
-shona_text = st.text_area("Enter Shona text here:")
+input_text = st.text_area("Enter Shona text to translate:")
 
-# Translate button
-if st.button('Translate'):
-    if shona_text:
-        translated_text = translate_shona_to_english(shona_text)
-        st.write("English translation:", translated_text)
-    else:
-        st.warning("Please enter some Shona text.")
+if st.button("Translate"):
+    translation = translate_shona_to_english(input_text)
+    st.write("Translated text:", translation)
